@@ -1,0 +1,149 @@
+<form id="form_cfg">
+
+    <table class="w3-table w3-bordered w3-border">
+        {{!-- <tr>
+            <th class="w3-center">Parámetro</th>
+            <th class="w3-center">Valor</th>
+        </tr> --}}
+        <tr>
+            <td style="padding-top: 13px;">Precio contado</td>
+            <td>
+                <input class="w3-input w3-border w3-round w3-hover-border-blue" type="number" step="any"
+                    id="precio_contado" name="precio_contado" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 13px;">Medio de pago</td>
+            <td>
+                <select id="medio_pago" class="w3-select" name="medio_pago">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tcredito">T. Credito</option>
+                    <option value="tdebito">T. Debito</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 13px;">Cuotas</td>
+            <td>
+                <select id="cuotas" class="w3-select" name="cuotas">
+                    <option value="a3">Ahora 3</option>
+                    <option value="a6">Ahora 6</option>
+                    <option value="a12">Ahora 12</option>
+                    <option value="a18">Ahora 18</option>
+                    <option value="2">2</option>
+                    {{!-- <option value="otro">otro</option> --}}
+                </select>
+            </td>
+        </tr>
+        {{!-- <tr>
+            <td style="padding-top: 13px;">Cuotas</td>
+            <td>
+                <input class="w3-input w3-border w3-round w3-hover-border-blue" type="number" id="cuotas"
+                    name="cuotas" />
+            </td>
+        </tr> --}}
+        <tr>
+            <td style="padding-top: 13px;">Cuota $:</td>
+            <td>
+                <div id="valor_por_cuota"></div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 13px;">Total $:</td>
+            <td>
+                <div id="total_financiado"></div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 13px;">Cutas en POSTNET:</td>
+            <td>
+                <div id="cuotas_posnet"></div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="w3-cell-row">
+        <div class="w3-container w3-cell w3-mobile w3-right">
+            <div class="w3-container w3-cell w3-mobile w3-center">
+                <input class="w3-btn w3-section w3-ripple w3-blue" style="max-width: 150px;" type="submit"
+                    id="btn_calcular" value="calcular"></input>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    const per_p_financiado = 0.15
+    const per_ahora_3 = 0.5
+    const per_ahora_6 = 0.12
+    const per_ahora_12 = 0.20
+    const per_ahora_18 = 0.25
+
+
+    $("document").ready(function () {
+
+        $("#form_cfg").on('submit', (event) => {
+            event.preventDefault();
+        })
+
+        $("#btn_calcular").on('click', () => {
+            console.debug('calcular')
+
+            $("#cuotas_posnet").html('')
+            $("#valor_por_cuota").html('0')
+            $("#total_financiado").html('0')
+
+            let cuotas = $('#cuotas option:selected').val()
+            let medio_pago = $('#medio_pago option:selected').val()
+            let p_contado = Number($('#precio_contado').val())
+            let p_financiado = 0
+            let p_cuota = 0
+
+            console.debug(medio_pago)
+            console.debug(p_contado)
+
+            if (medio_pago === 'tcredito') {
+                if (cuotas === 'a3') {
+                    p_financiado = (p_contado * per_ahora_3) + p_contado
+                    p_cuota = p_financiado / 3
+
+                    $("#cuotas_posnet").html(13)
+                }
+
+                if (cuotas === 'a6') {
+                    p_financiado = (p_contado * per_ahora_6) + p_contado
+                    p_cuota = p_financiado / 6
+
+                    $("#cuotas_posnet").html(16)
+                }
+
+                if (cuotas === 'a12') {
+                    p_financiado = (p_contado * per_ahora_12) + p_contado
+                    p_cuota = p_financiado / 12
+
+                    $("#cuotas_posnet").html(7)
+                }
+
+                if (cuotas === 'a18') {
+                    p_financiado = (p_contado * per_ahora_18) + p_contado
+                    p_cuota = p_financiado / 18
+
+                    $("#cuotas_posnet").html(8)
+                }
+            }
+
+
+            console.debug('P financiado: ' + p_financiado)
+            console.debug('P cuota: ' + p_cuota)
+
+            $("#valor_por_cuota").html('$ ' + Math.round(p_cuota))
+            $("#total_financiado").html('$ ' + Math.round(p_financiado))
+
+
+        })
+
+    })
+
+</script>
