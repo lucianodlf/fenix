@@ -9,7 +9,7 @@
             <td style="padding-top: 13px;">Precio contado</td>
             <td>
                 <input class="w3-input w3-border w3-round w3-hover-border-blue" type="number" step="any"
-                    id="precio_contado" name="precio_contado" />
+                    id="precio_contado" name="precio_contado" value="0"/>
             </td>
         </tr>
         <tr>
@@ -18,8 +18,9 @@
                 <select id="medio_pago" class="w3-select" name="medio_pago">
                     <option value="efectivo">Efectivo</option>
                     <option value="tcredito">T. Credito</option>
+                    <option value="tnaranja">Naranja</option>
                     <option value="tdebito">T. Debito</option>
-                    <option value="otro">Otro</option>
+                    <option value="ccasa">C. Casa</option>
                 </select>
             </td>
         </tr>
@@ -27,12 +28,6 @@
             <td style="padding-top: 13px;">Cuotas</td>
             <td>
                 <select id="cuotas" class="w3-select" name="cuotas">
-                    <option value="a3">Ahora 3</option>
-                    <option value="a6">Ahora 6</option>
-                    <option value="a12">Ahora 12</option>
-                    <option value="a18">Ahora 18</option>
-                    <option value="2">2</option>
-                    {{!-- <option value="otro">otro</option> --}}
                 </select>
             </td>
         </tr>
@@ -44,12 +39,18 @@
             </td>
         </tr> --}}
         <tr>
+            <td style="padding-top: 13px;">P. Financiado $:</td>
+            <td>
+                <div id="p_financiado"></div>
+            </td>
+        </tr>
+        <tr>
             <td style="padding-top: 13px;">Cuota $:</td>
             <td>
                 <div id="valor_por_cuota"></div>
             </td>
         </tr>
-        <tr>
+        <tr style="font-weight: bold;">
             <td style="padding-top: 13px;">Total $:</td>
             <td>
                 <div id="total_financiado"></div>
@@ -81,6 +82,36 @@
     const per_ahora_12 = 0.20
     const per_ahora_18 = 0.25
 
+    const coef_c_caca = [
+        0.5950, 0.4233, 0.3400, 0.2900, 0.2567, 0.2329, 0.2150, 0.2011, 0.1900, 0.1809, 0.1753, 0.1689, 0.1634, 0.1587, 0.1476
+    ]
+
+    const coef_t_credito = [
+        1.0965,
+        1.1315,
+        1.1672,
+        1.2036,
+        1.2407,
+        1.3155,
+        1.3595,
+        1.4043,
+        1.4501,
+        1.4967,
+        1.5441,
+        1.5924,
+        1.6415,
+        1.6914,
+        1.7421,
+        1.7936,
+        1.8459,
+        1.8989,
+        1.9527,
+        2.0072,
+        2.0625,
+        2.1184,
+        2.1750
+    ]
+
 
     $("document").ready(function () {
 
@@ -88,10 +119,14 @@
             event.preventDefault();
         })
 
+        $("#medio_pago").val('tcredito')
+        setCuotas('tcredito')
+
         $("#btn_calcular").on('click', () => {
             console.debug('calcular')
 
             $("#cuotas_posnet").html('')
+            $("#p_financiado").html('0')
             $("#valor_por_cuota").html('0')
             $("#total_financiado").html('0')
 
@@ -132,18 +167,132 @@
 
                     $("#cuotas_posnet").html(8)
                 }
+
+                if (Number(cuotas) >= 2 && Number(cuotas) <= 24) {
+                    console.debug(`cuotas: ${Number(cuotas)} - Coeficiente: ${coef_t_credito[Number(cuotas) - 2]}`)
+                    let pf = (p_contado * per_p_financiado) + p_contado
+                    p_financiado = (pf * coef_t_credito[Number(cuotas) - 2])
+                    p_cuota = p_financiado / Number(cuotas)
+
+                    $("#cuotas_posnet").html(cuotas)
+                    $("#p_financiado").html(`${pf.toFixed(2)} - cf(${coef_t_credito[Number(cuotas) - 2]})`)
+                }
+            }
+
+            if (medio_pago === 'tnaranja') {
+                if(cuotas === '1'){
+                    p_financiado = p_contado
+                    p_cuota = 1
+
+                    $("#cuotas_posnet").html(1)
+                }
+
+                if(cuotas === 'z'){
+                    p_financiado = (p_contado * per_p_financiado) + p_contado
+                    p_cuota = 0
+
+                    $("#cuotas_posnet").html(11)
+                }
+            }
+
+
+            if (medio_pago === 'ccasa') {
+                if (Number(cuotas) >= 2 && Number(cuotas) <= 18) {
+
+                    console.debug(`cuotas: ${Number(cuotas)} - Coeficiente: ${coef_c_caca[Number(cuotas) - 2]}`)
+                    let pf = (p_contado * per_p_financiado) + p_contado
+                    p_financiado = (pf * coef_c_caca[Number(cuotas) - 2])
+                    p_cuota = p_financiado / Number(cuotas)
+
+                    $("#p_financiado").html(`${pf.toFixed(2)} - cf(${coef_c_caca[Number(cuotas) - 2]})`)
+
+                }
+                
+            }
+
+            if (medio_pago === 'efectivo') {
+                p_financiado = p_contado
+                p_cuota = 0
             }
 
 
             console.debug('P financiado: ' + p_financiado)
             console.debug('P cuota: ' + p_cuota)
 
-            $("#valor_por_cuota").html('$ ' + Math.round(p_cuota))
-            $("#total_financiado").html('$ ' + Math.round(p_financiado))
+            $("#valor_por_cuota").html('$ ' + Math.round(p_cuota).toFixed(2))
+            $("#total_financiado").html('$ ' + Math.round(p_financiado).toFixed(2))
 
 
         })
 
+
+        $("#medio_pago").change(() => {
+            $('#cuotas').prop('disabled', false)
+
+            if ($('#medio_pago option:selected').val() == "efectivo" || $('#medio_pago option:selected').val() == "tdebito") {
+                $('#cuotas').prop('disabled', true)
+                return
+            }
+
+            if ($('#medio_pago option:selected').val() == "tcredito") {
+
+                setCuotas('tcredito')
+
+                return
+            }
+
+            if ($('#medio_pago option:selected').val() == "tnaranja") {
+
+                setCuotas('tnaranja')
+
+                return
+            }
+
+            if ($('#medio_pago option:selected').val() == "ccasa") {
+
+                setCuotas('ccasa')
+
+                return
+            }
+
+        })
+
     })
+
+
+    function setCuotas(medio_pago) {
+        $('#cuotas').empty()
+
+        if (medio_pago === 'tcredito') {
+            
+            $('#cuotas').append(new Option('Ahora 3', 'a3'))
+            $('#cuotas').append(new Option('Ahora 6', 'a6'))
+            $('#cuotas').append(new Option('Ahora 12', 'a12'))
+            $('#cuotas').append(new Option('Ahora 18', 'a18'))
+
+            for (let i = 2; i <= 24; i++) {
+                $('#cuotas').append(new Option(`${i}`, `${i}`))
+            }
+
+            return
+        }
+
+        if (medio_pago === 'tnaranja') {
+            
+            $('#cuotas').append(new Option('1', '1'))
+            $('#cuotas').append(new Option('z', 'Z'))
+
+            return
+        }
+
+        if (medio_pago === 'ccasa') {
+            
+            for (let i = 2; i <= 18; i++) {
+                $('#cuotas').append(new Option(`${i}`, `${i}`))
+            }
+
+            return
+        }
+    }
 
 </script>
