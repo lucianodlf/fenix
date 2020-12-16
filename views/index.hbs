@@ -190,7 +190,7 @@
         if (medio_pago === 'tnaranja') {
 
             $('#cuotas').append(new Option('1', '1'))
-            $('#cuotas').append(new Option('z', 'Z'))
+            $('#cuotas').append(new Option('Zeta', 'z'))
 
             return
         }
@@ -274,7 +274,9 @@
                 p_financiado = (p_contado * per_p_financiado) + p_contado
                 p_cuota = 0
 
+                $("#p_financiado").html(`${p_financiado.toFixed(2)} - %(${per_p_financiado})`)
                 $("#cuotas_posnet").html(11)
+
             }
         }
 
